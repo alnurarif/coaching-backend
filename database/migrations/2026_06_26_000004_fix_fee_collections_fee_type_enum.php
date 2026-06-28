@@ -7,6 +7,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') return;
+
         DB::statement("
             ALTER TABLE fee_collections
             MODIFY COLUMN fee_type
@@ -16,7 +18,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Remove rows with the new values before shrinking the enum
+        if (DB::getDriverName() === 'sqlite') return;
+
         DB::statement("
             UPDATE fee_collections
             SET fee_type = 'monthly'
