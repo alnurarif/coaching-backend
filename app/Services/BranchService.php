@@ -8,6 +8,8 @@ use Illuminate\Validation\ValidationException;
 
 class BranchService
 {
+    public function __construct(private PlanService $planService) {}
+
     public function list(): Collection
     {
         return Branch::withCount(['students', 'users'])
@@ -17,6 +19,8 @@ class BranchService
 
     public function create(array $data): Branch
     {
+        $this->planService->checkLimit('branches');
+
         // BelongsToTenant trait auto-sets tenant_id on creating
         return Branch::create([
             'name'      => $data['name'],

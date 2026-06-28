@@ -12,8 +12,8 @@ class BatchService
     public function list(array $filters): LengthAwarePaginator
     {
         $allowedSort = ['name', 'created_at', 'start_date', 'fee_amount', 'status'];
-        $sortBy  = in_array($filters['sort_by'] ?? null, $allowedSort, true) ? $filters['sort_by'] : 'created_at';
-        $sortDir = in_array(strtolower($filters['sort_dir'] ?? 'desc'), ['asc', 'desc'], true) ? $filters['sort_dir'] : 'desc';
+        $sortBy  = in_array($filters['sort_by'] ?? null, $allowedSort, true) ? ($filters['sort_by'] ?? 'created_at') : 'created_at';
+        $sortDir = in_array(strtolower($filters['sort_dir'] ?? 'desc'), ['asc', 'desc'], true) ? ($filters['sort_dir'] ?? 'desc') : 'desc';
 
         return Batch::with(['branch', 'teacher'])
             ->withCount('students')
@@ -63,7 +63,9 @@ class BatchService
     public function assignStudents(Batch $batch, array $studentIds, string $joinedAt): Batch
     {
         return DB::transaction(function () use ($batch, $studentIds, $joinedAt) {
-            $batch->refresh()->loadCount('students');
+            // Lock the batch row to prevent concurrent over-enrollment
+            $batch = Batch::lockForUpdate()->findOrFail($batch->id);
+            $batch->loadCount('students');
 
             $newCount     = count(array_unique($studentIds));
             $currentCount = $batch->students_count;

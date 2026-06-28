@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class StaffService
 {
+    public function __construct(private PlanService $planService) {}
+
     public function list(array $filters): LengthAwarePaginator
     {
         return User::with('roles:id,name')
@@ -30,17 +32,20 @@ class StaffService
 
     public function create(array $data): User
     {
+        $this->planService->checkLimit('staff');
+
         return DB::transaction(function () use ($data) {
             $auth = auth()->user();
 
             $user = User::create([
-                'tenant_id' => $auth->tenant_id,
-                'branch_id' => $auth->branch_id,
-                'name'      => $data['name'],
-                'email'     => $data['email'],
-                'phone'     => $data['phone'] ?? null,
-                'password'  => $data['password'], // User model 'hashed' cast handles bcrypt
-                'is_active' => true,
+                'tenant_id'   => $auth->tenant_id,
+                'branch_id'   => $data['branch_id'] ?? $auth->branch_id,
+                'name'        => $data['name'],
+                'email'       => $data['email'],
+                'phone'       => $data['phone'] ?? null,
+                'password'    => $data['password'],
+                'is_active'   => true,
+                'base_salary' => isset($data['base_salary']) ? (float) $data['base_salary'] : null,
             ]);
 
             $user->assignRole($data['role']);
@@ -53,10 +58,12 @@ class StaffService
     {
         return DB::transaction(function () use ($staff, $data) {
             $userData = array_filter([
-                'name'      => $data['name'] ?? null,
-                'email'     => $data['email'] ?? null,
-                'phone'     => $data['phone'] ?? null,
-                'is_active' => $data['is_active'] ?? null,
+                'name'        => $data['name'] ?? null,
+                'email'       => $data['email'] ?? null,
+                'phone'       => $data['phone'] ?? null,
+                'branch_id'   => $data['branch_id'] ?? null,
+                'is_active'   => $data['is_active'] ?? null,
+                'base_salary' => isset($data['base_salary']) ? (float) $data['base_salary'] : null,
             ], fn($v) => $v !== null);
 
             if (!empty($data['password'])) {

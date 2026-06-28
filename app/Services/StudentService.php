@@ -10,11 +10,13 @@ use Illuminate\Support\Facades\Storage;
 
 class StudentService
 {
+    public function __construct(private PlanService $planService) {}
+
     public function list(array $filters): LengthAwarePaginator
     {
         $allowedSort = ['name', 'created_at', 'admission_date', 'student_id', 'status'];
-        $sortBy  = in_array($filters['sort_by'] ?? null, $allowedSort, true) ? $filters['sort_by'] : 'created_at';
-        $sortDir = in_array(strtolower($filters['sort_dir'] ?? 'desc'), ['asc', 'desc'], true) ? $filters['sort_dir'] : 'desc';
+        $sortBy  = in_array($filters['sort_by'] ?? null, $allowedSort, true) ? ($filters['sort_by'] ?? 'created_at') : 'created_at';
+        $sortDir = in_array(strtolower($filters['sort_dir'] ?? 'desc'), ['asc', 'desc'], true) ? ($filters['sort_dir'] ?? 'desc') : 'desc';
 
         $query = Student::with(['branch', 'guardian'])
             ->when($filters['search'] ?? null, function ($q, $search) {
@@ -33,6 +35,8 @@ class StudentService
 
     public function create(array $data): Student
     {
+        $this->planService->checkLimit('students');
+
         return DB::transaction(function () use ($data) {
             $guardianData = $data['guardian'] ?? null;
             unset($data['guardian']);

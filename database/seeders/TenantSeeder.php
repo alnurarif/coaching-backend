@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\ExamType;
 use App\Models\ExpenseCategory;
 use App\Models\GradeScale;
+use App\Models\Plan;
 use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 
@@ -13,6 +14,8 @@ class TenantSeeder extends Seeder
 {
     public function run(): void
     {
+        $freePlan = Plan::where('slug', 'free')->first();
+
         $tenant = Tenant::create([
             'name'      => 'Bright Future Coaching Center',
             'slug'      => 'bright-future',
@@ -20,6 +23,7 @@ class TenantSeeder extends Seeder
             'email'     => 'info@brightfuture.com',
             'address'   => 'Mirpur, Dhaka',
             'is_active' => true,
+            'plan_id'   => $freePlan?->id,
         ]);
 
         Branch::create([

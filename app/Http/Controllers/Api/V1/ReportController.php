@@ -70,7 +70,7 @@ class ReportController extends Controller
 
     public function students(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', \App\Models\Student::class);
+        $this->authorize('viewAttendanceReports');
 
         $request->validate([
             'status'   => ['nullable', 'string', 'in:active,inactive,withdrawn'],

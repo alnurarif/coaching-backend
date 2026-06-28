@@ -31,7 +31,9 @@ class UpdateStaffRequest extends FormRequest
                     $fail('The selected role does not exist.');
                 }
             }],
-            'is_active' => ['sometimes', 'boolean'],
+            'base_salary' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'is_active'   => ['sometimes', 'boolean'],
+            'branch_id'   => ['sometimes', 'nullable', Rule::exists('branches', 'id')->where('tenant_id', $this->user()->tenant_id)],
         ];
     }
 }

@@ -15,11 +15,13 @@ class StoreStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', Rule::unique('users', 'email')],
-            'phone'    => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8'],
-            'role'     => ['required', 'string', function ($attribute, $value, $fail) {
+            'name'         => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'email', Rule::unique('users', 'email')],
+            'phone'        => ['nullable', 'string', 'max:20'],
+            'password'     => ['required', 'string', 'min:8'],
+            'base_salary'  => ['nullable', 'numeric', 'min:0'],
+            'branch_id'    => ['nullable', Rule::exists('branches', 'id')->where('tenant_id', $this->user()->tenant_id)],
+            'role'         => ['required', 'string', function ($attribute, $value, $fail) {
                 if (in_array($value, ['owner', 'teacher'])) {
                     return $fail('The selected role cannot be assigned to staff.');
                 }

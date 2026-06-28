@@ -23,6 +23,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'is_active',
+        'base_salary',
     ];
 
     protected $hidden = [
@@ -32,8 +33,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password'  => 'hashed',
-            'is_active' => 'boolean',
+            'password'    => 'hashed',
+            'is_active'   => 'boolean',
+            'base_salary' => 'decimal:2',
         ];
     }
 
@@ -60,5 +62,14 @@ class User extends Authenticatable
     public function salaryPayments(): HasMany
     {
         return $this->hasMany(SalaryPayment::class, 'user_id');
+    }
+
+    // Single entry point for payroll base salary.
+    // Teachers: authoritative source is teacher_profiles.base_salary.
+    // All other employees: users.base_salary.
+    // When an HR/employee table is introduced, update only this method.
+    public function baseSalary(): float
+    {
+        return (float) ($this->teacherProfile?->base_salary ?? $this->base_salary ?? 0);
     }
 }

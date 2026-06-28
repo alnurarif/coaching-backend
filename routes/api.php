@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\V1\ExamTypeController;
 use App\Http\Controllers\Api\V1\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\ExpenseController;
 use App\Http\Controllers\Api\V1\GradeScaleController;
+use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PlanController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\StaffController;
@@ -18,12 +20,23 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SalaryController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\SubjectController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\TeacherController;
+use App\Http\Controllers\Api\V1\TenantRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+    // Public routes (no auth)
+    Route::post('/login',    [AuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('/register', [TenantRegistrationController::class, 'store'])->middleware('throttle:5,1');
+    Route::get('/plans',     [PlanController::class, 'index']);
+
+    // SSLCommerz callbacks (no auth, no CSRF)
+    Route::post('/payment/ipn',    [PaymentController::class, 'ipn']);
+    Route::get('/payment/success', [PaymentController::class, 'success']);
+    Route::get('/payment/fail',    [PaymentController::class, 'fail']);
+    Route::get('/payment/cancel',  [PaymentController::class, 'cancel']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
@@ -80,9 +93,10 @@ Route::prefix('v1')->group(function () {
         Route::get('staff',  [StaffController::class, 'index']);
         Route::post('staff', [StaffController::class, 'store']);
 
-        Route::get('salaries/dues', [SalaryController::class, 'dues']);
-        Route::get('salaries',      [SalaryController::class, 'index']);
-        Route::post('salaries',     [SalaryController::class, 'store']);
+        Route::get('salaries/monthly-status', [SalaryController::class, 'monthlyStatus']);
+        Route::get('salaries/dues',           [SalaryController::class, 'dues']);
+        Route::get('salaries',                [SalaryController::class, 'index']);
+        Route::post('salaries',               [SalaryController::class, 'store']);
 
         // Exam & Result Management
         Route::apiResource('subjects',   SubjectController::class)->except(['show']);
@@ -104,6 +118,10 @@ Route::prefix('v1')->group(function () {
         Route::post('roles',                         [RolesController::class, 'store']);
         Route::put('roles/{role}/permissions',       [RolesController::class, 'syncPermissions']);
         Route::delete('roles/{role}',                [RolesController::class, 'destroy']);
+
+        // Subscription management
+        Route::get('subscription',          [SubscriptionController::class, 'current']);
+        Route::post('subscription/checkout',[SubscriptionController::class, 'checkout']);
     });
 
 });

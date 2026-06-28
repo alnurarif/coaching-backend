@@ -8,12 +8,18 @@ use Illuminate\Support\Facades\DB;
 
 class TeacherService
 {
+    public function __construct(private PlanService $planService) {}
+
     public function list(array $filters): LengthAwarePaginator
     {
+        $caller = auth()->user();
+
         return User::with(['teacherProfile', 'branch'])
             ->withCount('batches')
             ->whereHas('roles', fn($q) => $q->where('name', 'teacher'))
-            ->where('tenant_id', auth()->user()->tenant_id)
+            ->where('tenant_id', $caller->tenant_id)
+            // Teachers may only retrieve their own record; all other roles see the full list.
+            ->when($caller->hasRole('teacher'), fn($q) => $q->where('users.id', $caller->id))
             ->when($filters['search'] ?? null, fn($q, $v) =>
                 $q->where(function ($sq) use ($v) {
                     $sq->where('name', 'like', "%{$v}%")
@@ -28,6 +34,8 @@ class TeacherService
 
     public function create(array $data): User
     {
+        $this->planService->checkLimit('staff');
+
         return DB::transaction(function () use ($data) {
             $auth = auth()->user();
 

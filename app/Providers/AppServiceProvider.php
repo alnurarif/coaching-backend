@@ -67,14 +67,20 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewSalary',   fn(User $user) => $user->hasPermissionTo('salary.view'));
         Gate::define('createSalary', fn(User $user) => $user->hasPermissionTo('salary.create'));
 
-        // ── Exam configuration ────────────────────────────────────────────────
-        Gate::define('manageExamConfig', fn(User $user) => $user->hasPermissionTo('exams.create'));
+        // ── Exam configuration (teachers excluded — config is management-level) ──
+        Gate::define('manageExamConfig', fn(User $user) =>
+            $user->hasPermissionTo('exams.create') && ! $user->hasRole('teacher')
+        );
 
         // ── Subjects ──────────────────────────────────────────────────────────
         Gate::define('viewAnySubject', fn(User $user) => $user->hasPermissionTo('exams.view'));
-        Gate::define('createSubject',  fn(User $user) => $user->hasPermissionTo('exams.create'));
+        Gate::define('createSubject',  fn(User $user) =>
+            $user->hasPermissionTo('exams.create') && ! $user->hasRole('teacher')
+        );
         Gate::define('updateSubject',  fn(User $user, \App\Models\Subject $subject) =>
-            $user->tenant_id === $subject->tenant_id && $user->hasPermissionTo('exams.create')
+            $user->tenant_id === $subject->tenant_id
+            && $user->hasPermissionTo('exams.create')
+            && ! $user->hasRole('teacher')
         );
         Gate::define('deleteSubject',  fn(User $user, \App\Models\Subject $subject) =>
             $user->tenant_id === $subject->tenant_id && $user->hasPermissionTo('exams.delete')

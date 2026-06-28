@@ -33,6 +33,24 @@ class SalaryController extends Controller
         return SalaryPaymentResource::make($payment)->response()->setStatusCode(201);
     }
 
+    public function monthlyStatus(Request $request): JsonResponse
+    {
+        $this->authorize('viewSalary');
+
+        $request->validate([
+            'month'     => ['required', 'date_format:Y-m'],
+            'branch_id' => ['nullable', 'integer'],
+        ]);
+
+        $status = $this->salaryService->monthlyStatus(
+            $request->input('month'),
+            $request->user()->tenant_id,
+            $request->input('branch_id') ? (int) $request->input('branch_id') : null,
+        );
+
+        return response()->json(['data' => $status]);
+    }
+
     public function dues(Request $request): JsonResponse
     {
         $this->authorize('viewSalary');

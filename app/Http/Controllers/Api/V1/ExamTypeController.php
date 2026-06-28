@@ -16,6 +16,8 @@ class ExamTypeController extends Controller
 
     public function index(): JsonResponse
     {
+        $this->authorize('viewAnySubject');
+
         $examTypes = $this->examTypeService->list();
 
         return ExamTypeResource::collection($examTypes)->response();

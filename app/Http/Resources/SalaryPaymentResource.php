@@ -22,8 +22,9 @@ class SalaryPaymentResource extends JsonResource
             'payment_method' => $this->payment_method,
             'note'           => $this->note,
             'teacher'        => $this->whenLoaded('teacher', fn() => [
-                'id'   => $this->teacher->id,
-                'name' => $this->teacher->name,
+                'id'       => $this->teacher->id,
+                'name'     => $this->teacher->name,
+                'position' => ucfirst($this->teacher->roles->first()?->name ?? 'staff'),
             ]),
             'paid_by_user'   => $this->whenLoaded('paidBy', fn() => [
                 'id'   => $this->paidBy->id,

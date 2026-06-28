@@ -27,6 +27,17 @@ class UserResource extends JsonResource
                 'email'   => $this->tenant->email,
                 'address' => $this->tenant->address,
                 'logo'    => $this->tenant->logo,
+                'plan'    => $this->tenant->relationLoaded('plan') && $this->tenant->plan ? [
+                    'id'              => $this->tenant->plan->id,
+                    'name'            => $this->tenant->plan->name,
+                    'slug'            => $this->tenant->plan->slug,
+                    'students_limit'  => $this->tenant->plan->students_limit,
+                    'branches_limit'  => $this->tenant->plan->branches_limit,
+                    'staff_limit'     => $this->tenant->plan->staff_limit,
+                    'reports_level'   => $this->tenant->plan->reports_level,
+                    'can_export'      => $this->tenant->plan->can_export,
+                    'support_level'   => $this->tenant->plan->support_level,
+                ] : null,
             ]),
             'branch'      => $this->whenLoaded('branch', fn() => [
                 'id'   => $this->branch->id,
