@@ -91,7 +91,7 @@ class DashboardService
 
             // 6-month trend (3 bulk queries, no N+1)
             $sixMonthsAgo = now()->subMonths(5)->startOfMonth()->toDateString();
-            $isSqlite     = \DB::getDriverName() === 'sqlite';
+            $isSqlite     = DB::getDriverName() === 'sqlite';
             $ymFee        = $isSqlite ? "strftime('%Y-%m', payment_date)" : "DATE_FORMAT(payment_date, '%Y-%m')";
             $ymExp        = $isSqlite ? "strftime('%Y-%m', expense_date)"  : "DATE_FORMAT(expense_date, '%Y-%m')";
 
