@@ -10,6 +10,7 @@ use App\Models\SalaryPayment;
 use App\Models\Student;
 use App\Models\StudentAttendance;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
@@ -90,20 +91,23 @@ class DashboardService
 
             // 6-month trend (3 bulk queries, no N+1)
             $sixMonthsAgo = now()->subMonths(5)->startOfMonth()->toDateString();
+            $isSqlite     = \DB::getDriverName() === 'sqlite';
+            $ymFee        = $isSqlite ? "strftime('%Y-%m', payment_date)" : "DATE_FORMAT(payment_date, '%Y-%m')";
+            $ymExp        = $isSqlite ? "strftime('%Y-%m', expense_date)"  : "DATE_FORMAT(expense_date, '%Y-%m')";
 
             $incomeByMonth = FeeCollection::where('tenant_id', $tenantId)
                 ->whereDate('payment_date', '>=', $sixMonthsAgo)
-                ->selectRaw("DATE_FORMAT(payment_date, '%Y-%m') as ym, SUM(amount_paid) as total")
+                ->selectRaw("$ymFee as ym, SUM(amount_paid) as total")
                 ->groupBy('ym')->pluck('total', 'ym');
 
             $expensesByMonth = Expense::where('tenant_id', $tenantId)
                 ->whereDate('expense_date', '>=', $sixMonthsAgo)
-                ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') as ym, SUM(amount) as total")
+                ->selectRaw("$ymExp as ym, SUM(amount) as total")
                 ->groupBy('ym')->pluck('total', 'ym');
 
             $salaryByMonth = SalaryPayment::where('tenant_id', $tenantId)
                 ->whereDate('payment_date', '>=', $sixMonthsAgo)
-                ->selectRaw("DATE_FORMAT(payment_date, '%Y-%m') as ym, SUM(amount_paid) as total")
+                ->selectRaw("$ymFee as ym, SUM(amount_paid) as total")
                 ->groupBy('ym')->pluck('total', 'ym');
 
             $trend = [];
