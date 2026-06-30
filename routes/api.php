@@ -33,10 +33,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/plans',     [PlanController::class, 'index']);
 
     // SSLCommerz callbacks (no auth, no CSRF)
-    Route::post('/payment/ipn',    [PaymentController::class, 'ipn']);
-    Route::get('/payment/success', [PaymentController::class, 'success']);
-    Route::get('/payment/fail',    [PaymentController::class, 'fail']);
-    Route::get('/payment/cancel',  [PaymentController::class, 'cancel']);
+    Route::match(['get', 'post'], '/payment/ipn',     [PaymentController::class, 'ipn']);
+    Route::match(['get', 'post'], '/payment/success', [PaymentController::class, 'success']);
+    Route::match(['get', 'post'], '/payment/fail',    [PaymentController::class, 'fail']);
+    Route::match(['get', 'post'], '/payment/cancel',  [PaymentController::class, 'cancel']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
